@@ -1,4 +1,4 @@
-import { TransformNode, CSG, Vector3, Quaternion } from "babylonjs"
+import { SceneLoader, TransformNode, CSG, Vector3, Quaternion, StandardMaterial } from "babylonjs"
 import { createShape, disposeAll, createMat } from "../modules/basictools.js"
 
 export function createOccluderWall(scene, pos, camera){
@@ -90,4 +90,52 @@ export function createOccluderWall(scene, pos, camera){
     }
 
     return {occluderRoot, placeOccluder}
+}
+
+export async function createOccluderCage(scene){
+
+    const occluderRoot = new TransformNode("occluderNode", scene)
+    occluderRoot.rotationQuaternion = new Quaternion()
+    const wall = createShape(scene,{ width: 100, depth: 100, height: 0.01 })
+    const hole = createShape(scene, { width: .75, depth: 3, height: 0.05})
+
+    const wallCsg = CSG.FromMesh(wall)
+    const holeCsg = CSG.FromMesh(hole)
+
+    disposeAll([wall, hole])
+
+    const booleanCsg = wallCsg.subtract(holeCsg)
+    const booleanRCsg = holeCsg.subtract(wallCsg)
+
+    let occluder = booleanCsg.toMesh("occluder", null, scene)
+    let occluderHole = booleanRCsg.toMesh("occluder", null, scene)
+
+    const occluders = [occluder, occluderHole]
+
+    // return (await SceneLoader.ImportMeshAsync("", "./models/occluder.glb")).meshes[0]
+    const Model = await SceneLoader.ImportMeshAsync("", null, "./models/occluder.glb", scene)
+    const mat = new StandardMaterial("mat", scene)
+    mat.forceDepthWrite = true
+    Model.meshes.forEach(mesh => {
+        if(mesh.name.includes("root")) return console.log("this is root return")
+        mesh.material = mat
+        mesh.visibility = .001
+        mesh.renderingGroupId = 0
+        mesh.isPickable = false
+        mesh.name = "occluder"
+    })
+    occluders.forEach(occldr => {
+        occldr.parent = occluderRoot
+        occldr.material = mat
+        occldr.visibility = 0.001
+        occldr.renderingGroupId = 0
+        occldr.isPickable = false
+    })
+    
+    occluderHole.isVisible = false
+    Model.meshes[0].parent = occluderRoot
+
+    // occluderRoot.position.y = 100
+    
+    return occluderRoot
 }

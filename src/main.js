@@ -7,7 +7,7 @@ const engine = new Engine(document.querySelector("canvas"), true)
 
 async function main(){
 
-  const scene = await manager(engine)
+  const scene = await manager(engine, "test")
 
   engine.runRenderLoop(() => scene.render())
   window.addEventListener("resize", ()=> engine.resize())

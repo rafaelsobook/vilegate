@@ -12,6 +12,7 @@
     "vite": "^6.0.5"
   },
   "dependencies": {
+    "@lucafly/animtool": "^1.0.5",
     "babylonjs": "^7.43.0",
     "babylonjs-loaders": "^7.43.0",
     "vite-plugin-mkcert": "^1.17.6"
