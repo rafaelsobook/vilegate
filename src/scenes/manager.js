@@ -6,8 +6,8 @@ export async function manager(engine, sceneName){
         case "test":
             return await testScene(engine)
         break
-        case "production":
-            
+        default:
+            return await testScene(engine)
         break
     }
 }
