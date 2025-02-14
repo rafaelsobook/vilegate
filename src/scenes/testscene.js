@@ -55,38 +55,21 @@ export async function testScene(engine){
         scene.onPointerObservable.add( async (event) => {
             // marker.position = event.pickInfo.pickedPoint
             // marker.isVisible = true;.
-            const lastHit = getHitTest()
             if(isPlaced) return
-
             isPlaced = true
+            const lastHit = getHitTest()
+
             marker.isVisible = false
             const pickedPoint = marker.position.clone()
             const camPos = cam.position
 
             if(lastHit) anchorSystem.addAnchorPointUsingHitTestResultAsync(lastHit)
 
-            // const subtractPos = camPos.subtract(pickedPoint)
-            
-            
-            // const model = await SceneLoader.ImportMeshAsync("", false, "./models/skeleton.glb", scene)
-            // // const PlaceModel = await SceneLoader.ImportMeshAsync("", false, "./models/smallplace.glb", scene)
-            // model.meshes[0].position.z += 5
-            // model.meshes[0].position.x -= 1
-        
-            // const markPos = marker.position
-            // const markRot = marker.rotationQuaternion
-
-            // model.meshes[0].position = marker.position
-            // // PlaceModel.meshes[0].position = new Vector3(markPos.x, markPos.y,markPos.z)
-            // model.meshes[0].rotationQuaternion = marker.rotationQuaternion
-            // PlaceModel.meshes[0].rotationQuaternion = new Quaternion(markRot.x,markRot.y,markRot.z,markRot.w)
 
             scene.meshes.forEach(mesh => {
                 if(!mesh.name.includes("root") && !mesh.name.includes("occluder")) mesh.renderingGroupId = 1
             })
 
-            scene.setRenderingAutoClearDepthStencil(1, false, false, false)
-            scene.setRenderingAutoClearDepthStencil(0, true, true, true)
         }, PointerEventTypes.POINTERDOWN )
     } catch (error) {
         log(error)

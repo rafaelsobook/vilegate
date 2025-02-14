@@ -6,7 +6,7 @@ let enabled = false
 export function enableAnchorSystem(fm,scene, cam, occluderRoot, chamberPlace, gate){
     try {
         const anchorSystem = fm.enableFeature(WebXRAnchorSystem, "latest")
-        
+        let renderer
         anchorSystem.onAnchorAddedObservable.add( anchor => {
             const parentNode = new TransformNode("", scene)
 
@@ -14,7 +14,7 @@ export function enableAnchorSystem(fm,scene, cam, occluderRoot, chamberPlace, ga
             let pickedPoint = new Vector3(0,0,0)
             log(anchor)
             anchor.transformationMatrix.decompose(null, null, pickedPoint)
-            const rotY = Math.atan2(camPos.x - pickedPoint.x, camPos.z - pickedPoint.z)
+            let rotY = Math.atan2(pickedPoint.x - camPos.x, pickedPoint.z - camPos.z)
 
             // gate.position = pickedPoint.clone()
             gate.parent = parentNode
@@ -44,8 +44,31 @@ export function enableAnchorSystem(fm,scene, cam, occluderRoot, chamberPlace, ga
                 })
             }, -.5)
 
+            
             anchor.attachedNode = parentNode
+            
+            
+            scene.onBeforeRenderObservable.remove(renderer)
+            renderer = scene.onBeforeRenderObservable.add(() => {
+                parentNode.rotationQuaternion = Quaternion.FromEulerAngles(0,rotY,0)
+                scene.setRenderingAutoClearDepthStencil(1, false, false, false)
+                scene.setRenderingAutoClearDepthStencil(0, true, true, true)
+                // scene.autoClear = true
+            })
+
+            // const targetPosition = new Vector3(camPos.x, 0, camPos.z); // Example target
+
+            // // Compute the direction from the anchor to the target
+            // const direction = targetPosition.subtract(anchor.attachedNode.position).normalize();
+            // anchor.attachedNode.rotationQuaternion = Quaternion.FromLookDirectionLH(direction, BABYLON.Vector3.Up());
+            // Create a rotation quaternion to face the direction
+            // parentNode.rotationQuaternion = Quaternion.FromEulerAngles(0,rotY,0)
             // log(anchor.position) this do not exist
+            setInterval(() => {
+                // anchor.attachedNode.addRotation(0,rotY,0)
+                // anchor.attachedNode.rotationQuaternion = Quaternion.FromEulerAngles(0,rotY,0)
+            }, 1000)
+            
         })
         enabled = true
 
