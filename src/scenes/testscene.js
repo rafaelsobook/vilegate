@@ -1,12 +1,13 @@
-import { DirectionalLight, PointerEventTypes, Scene, Sound, SceneLoader, MeshBuilder, FreeCamera, Vector3, Quaternion, Mesh } from "babylonjs"
+import { DirectionalLight, TransformNode, PointerEventTypes, Scene, Sound, SceneLoader, MeshBuilder, FreeCamera, Vector3, Quaternion, Mesh } from "babylonjs"
 import { createShape } from "../modules/basictools.js"
 import { createOccluderCage } from "../tools/occluders.js"
 import { checkARSupport } from "../tools/checkArSupport.js"
 import { enableHitTest } from "../features/hitTest.js"
 import { enableAnchorSystem } from "../features/anchors.js"
+import { createAnim, animateCam } from "@lucafly/animtool"
 const log = console.log
 
-
+createAnim
 let chamberPlace
 let occluderRoot
 let gate
@@ -45,7 +46,7 @@ export async function testScene(engine){
         cam = xr.baseExperience.camera;
 
         const marker = createShape(scene, false, false, false, "torus", false, true)
-        marker.isVisible = false;
+        marker.isVisible = true;
 
 
         const { getHitTest } = enableHitTest(fm, marker)
@@ -64,12 +65,51 @@ export async function testScene(engine){
             const camPos = cam.position
 
             if(lastHit) anchorSystem.addAnchorPointUsingHitTestResultAsync(lastHit)
+            log(lastHit)
+            if(!lastHit){
+                const parentNode = new TransformNode("", scene)
 
+                const camPos = cam.position
+      
+                // anchor.transformationMatrix.decompose(null, null, pickedPoint)
+                let rotY = Math.atan2(pickedPoint.x - camPos.x, pickedPoint.z - camPos.z)
+    
+                // gate.position = pickedPoint.clone()
+                gate.parent = parentNode
+    
+                // the reason why I did not put this after the animation ends is I need the occluder in the beginning so I wont see what's happening on the background and good thing nothing is beyond so we still wont see anything on the box portal
+                occluderRoot.parent = parentNode
+                // occluderRoot.rotationQuaternion = Quaternion.FromEulerAngles(0,rotY,0)
+                occluderRoot.addRotation(Math.PI/2,0,0)
+    
+                const earthRumS = new Sound("earthRunSound", "./sounds/earthRum.mp3", scene, undefined, {
+                    autoplay: true,
+                })
+                createAnim(gate, "position.y", "float", pickedPoint.y - 1.5, 0)
+                // createAnim(occluderRoot, "position.y", "float", -2, pickedPoint.y).play()
+                animateCam(scene, gate, false, () => {
+                    chamberPlace.setEnabled(true)
+                    chamberPlace.parent = parentNode
+                    chamberPlace.position = new Vector3(0,-.05,0)
+                    // chamberPlace.rotationQuaternion = Quaternion.FromEulerAngles(0,rotY,0)
+                    earthRumS.stop()
+                    earthRumS.dispose()
+                    new Sound("", "./sounds/afterRum.mp3", scene, undefined, {
+                        autoplay: true,
+                    })
+                    new Sound("", "./sounds/background.mp3", scene, undefined, {
+                        autoplay: true, loop: true, volume: .6
+                    })
+                }, -.5)
+
+                parentNode.rotationQuaternion = Quaternion.FromEulerAngles(0,rotY,0)
+            }
 
             scene.meshes.forEach(mesh => {
                 if(!mesh.name.includes("root") && !mesh.name.includes("occluder")) mesh.renderingGroupId = 1
             })
-
+            scene.setRenderingAutoClearDepthStencil(1, false, false, false)
+            scene.setRenderingAutoClearDepthStencil(0, true, true, true)
         }, PointerEventTypes.POINTERDOWN )
     } catch (error) {
         log(error)

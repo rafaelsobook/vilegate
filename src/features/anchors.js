@@ -28,12 +28,12 @@ export function enableAnchorSystem(fm,scene, cam, occluderRoot, chamberPlace, ga
                 autoplay: true,
             })
             createAnim(gate, "position.y", "float", pickedPoint.y - 1.5, 0)
-            createAnim(occluderRoot, "position.y", "float", -2, pickedPoint.y).play()
+            // createAnim(occluderRoot, "position.y", "float", -2, pickedPoint.y).play()
             animateCam(scene, gate, false, () => {
                 chamberPlace.setEnabled(true)
                 chamberPlace.parent = parentNode
                 chamberPlace.position = new Vector3(0,-.05,0)
-                chamberPlace.rotationQuaternion = Quaternion.FromEulerAngles(0,rotY,0)
+                // chamberPlace.rotationQuaternion = Quaternion.FromEulerAngles(0,rotY,0)
                 earthRumS.stop()
                 earthRumS.dispose()
                 new Sound("", "./sounds/afterRum.mp3", scene, undefined, {
@@ -47,7 +47,9 @@ export function enableAnchorSystem(fm,scene, cam, occluderRoot, chamberPlace, ga
             
             anchor.attachedNode = parentNode
             
-            
+            scene.meshes.forEach(mesh => {
+                if(!mesh.name.includes("root") && !mesh.name.includes("occluder")) mesh.renderingGroupId = 1
+            })
             scene.onBeforeRenderObservable.remove(renderer)
             renderer = scene.onBeforeRenderObservable.add(() => {
                 parentNode.rotationQuaternion = Quaternion.FromEulerAngles(0,rotY,0)
