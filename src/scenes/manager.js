@@ -1,4 +1,4 @@
-import { testScene } from './testScene.js'
+import { testScene } from './testscene.js'
 
 export async function manager(engine, sceneName){
 
